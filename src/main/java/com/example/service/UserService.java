@@ -9,6 +9,9 @@ import com.example.entity.User;
 import com.example.mapper.UserMapper;
 import com.example.repository.UserRepository;
 
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheKey;
+import io.quarkus.cache.CacheResult;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,7 +30,15 @@ public class UserService {
         return UserMapper.toDTOs(repo.listAll());
     }
 
+    @CacheResult(cacheName = "user-cache")
     public UserDTO get(Long id) {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         return UserMapper.toDTO(
                 repo.findByIdOptional(id).orElseThrow(NotFoundException::new));
     }
@@ -61,7 +72,15 @@ public class UserService {
         return UserMapper.toDTO(existing);
     }
 
-    public List<UserDTO> search(String name, int page, int size) {
+    @CacheResult(cacheName = "user-cache")
+    public List<UserDTO> search(@CacheKey String name, @CacheKey int page, @CacheKey int size) {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         size = Math.min(Math.max(size, 1), 50);
         page = Math.max(page, 0);
 
@@ -70,6 +89,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheInvalidate(cacheName = "user-cache")
     public void delete(Long id) {
         if (!repo.deleteById(id)) {
             throw new NotFoundException();
