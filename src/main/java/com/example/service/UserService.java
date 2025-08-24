@@ -28,7 +28,7 @@ public class UserService {
     }
 
     public UserDTO get(Long id) {
-        return UserMapper.toDto(
+        return UserMapper.toDTO(
                 repo.findByIdOptional(id).orElseThrow(NotFoundException::new));
     }
 
@@ -41,7 +41,7 @@ public class UserService {
 
         User entity = UserMapper.fromCreate(in);
         repo.persist(entity);
-        return UserMapper.toDto(entity);
+        return UserMapper.toDTO(entity);
     }
 
     @Transactional
@@ -58,7 +58,7 @@ public class UserService {
         }
 
         UserMapper.merge(existing, in);
-        return UserMapper.toDto(existing);
+        return UserMapper.toDTO(existing);
     }
 
     public List<UserDTO> search(String name, int page, int size) {
@@ -66,7 +66,7 @@ public class UserService {
         page = Math.max(page, 0);
 
         PanacheQuery<User> q = repo.findByNamePaged(name).page(Page.of(page, size));
-        return q.list().stream().map(UserMapper::toDto).toList();
+        return q.list().stream().map(UserMapper::toDTO).toList();
     }
 
     @Transactional

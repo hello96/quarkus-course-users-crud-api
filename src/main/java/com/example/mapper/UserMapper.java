@@ -11,7 +11,7 @@ public final class UserMapper {
     private UserMapper() {
     }
 
-    public static UserDTO toDto(User u) {
+    public static UserDTO toDTO(User u) {
         if (u == null)
             return null;
 
@@ -26,7 +26,7 @@ public final class UserMapper {
     }
 
     public static List<UserDTO> toDTOs(List<User> users) {
-        return users.stream().map(UserMapper::toDto).toList();
+        return users.stream().map(UserMapper::toDTO).toList();
     }
 
     // DTO di creazione -> nuova Entity (id lasciato a null: lo gestisce JPA)
