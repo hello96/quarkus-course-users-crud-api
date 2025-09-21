@@ -20,7 +20,7 @@ public class User {
 
     @Email
     @NotBlank
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 120, unique = true)
     public String email;
 
     @Column(nullable = false)

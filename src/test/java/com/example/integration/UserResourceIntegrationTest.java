@@ -8,17 +8,15 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-public class UserResourceIT {
+public class UserResourceIntegrationTest {
     @Test
     void testCreateUser() {
-        given()
-                .when().post("/user")
-                .then()
-                .body("name", is("mario"))
-                .statusCode(201);
+        given().contentType("application/json").body("{\"name\": \"mario\", \"email\": \"mario@example.com\"}").when()
+                .post("/user").then()
+                .body("name", is("mario")).statusCode(201);
 
         given()
-                .when().get("/1")
+                .when().get("/user/1")
                 .then()
                 .statusCode(200)
                 .body("name", is("mario"));

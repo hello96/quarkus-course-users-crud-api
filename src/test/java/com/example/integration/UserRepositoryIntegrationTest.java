@@ -12,10 +12,12 @@ import org.junit.jupiter.api.Test;
 import com.example.entity.User;
 import com.example.repository.UserRepository;
 
+import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
-public class UserRepositoryIT {
+@QuarkusTest
+public class UserRepositoryIntegrationTest {
     @Inject
     UserRepository repo;
 
@@ -23,7 +25,7 @@ public class UserRepositoryIT {
     @Transactional
     void persist_and_findByIdOptional() {
         var u = new User();
-        u.email = "a@a.it";
+        u.email = "w@w.it";
         u.name = "mario";
 
         repo.persist(u);
@@ -31,22 +33,22 @@ public class UserRepositoryIT {
 
         Optional<User> found = repo.findByIdOptional(u.id);
         assertTrue(found.isPresent());
-        assertEquals("Mario", found.get().name);
-        assertEquals("c@ex.com", found.get().email);
+        assertEquals("mario", found.get().name);
+        assertEquals("w@w.it", found.get().email);
     }
 
     @Test
     @Transactional
     void uniqueEmail_constraint_violation() {
         var u1 = new User();
-        u1.email = "a@a.it";
+        u1.email = "b@b.it";
         u1.name = "mario";
 
         var u2 = new User();
-        u2.email = "a@a.it";
+        u2.email = "b@b.it";
         u2.name = "wario";
 
-        repo.persist(u2);
+        repo.persist(u1);
         assertNotNull(u1.id);
 
         // La seconda persist dovrebbe fallire lato DB (unique index/email)

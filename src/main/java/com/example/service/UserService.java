@@ -40,7 +40,7 @@ public class UserService {
         });
 
         User entity = UserMapper.fromCreate(in);
-        repo.persist(entity);
+        repo.persistAndFlush(entity);
         return UserMapper.toDTO(entity);
     }
 
