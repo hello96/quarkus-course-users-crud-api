@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --lower_case_table_names=1
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpwd
+      MYSQL_DATABASE: quarkusdb
+      MYSQL_USER: quarkus
+      MYSQL_PASSWORD: quarkus
+    ports:
+      - "3324:3306" # opzionale: esponi solo se ti serve dall'host
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--password=rootpwd" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379" # opzionale
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.native
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      QUARKUS_DATASOURCE_DB_KIND: mysql
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://mysql:3306/quarkusdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      QUARKUS_DATASOURCE_USERNAME: quarkus
+      QUARKUS_DATASOURCE_PASSWORD: quarkus
+      QUARKUS_REDIS_HOSTS: redis://redis:6379
+      # Solo per dev: crea/aggiorna schema automaticamente
+      QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: update
+      # Se vuoi log più verbosi:
+      # QUARKUS_LOG_CATEGORY__IO.AGROAL__LEVEL: DEBUG
+      # QUARKUS_LOG_CATEGORY__ORG.HIBERNATE__LEVEL: INFO
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
