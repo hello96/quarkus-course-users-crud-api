@@ -1,17 +1,16 @@
 package com.example.repository;
 
-import java.util.Optional;
-
 import com.example.entity.User;
 
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.hibernate.reactive.panache.PanacheQuery;
+import io.quarkus.hibernate.reactive.panache.PanacheRepository;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class UserRepository implements PanacheRepository<User> {
-    public Optional<User> findByEmail(String email) {
-        Optional<User> result = find("email", email).firstResultOptional();
+    public Uni<User> findByEmail(String email) {
+        Uni<User> result = find("email", email).firstResult();
         return result;
     }
 

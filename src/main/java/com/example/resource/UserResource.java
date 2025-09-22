@@ -8,6 +8,7 @@ import com.example.dto.UserDTO;
 import com.example.dto.UserUpdateDTO;
 import com.example.service.UserService;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 
 @ApplicationScoped
@@ -30,19 +32,19 @@ public class UserResource {
     UserService service;
 
     @GET
-    public List<UserDTO> list() {
+    public Uni<List<UserDTO>> list() {
         return service.list();
     }
 
     @GET
     @Path("/{id}")
-    public UserDTO get(@PathParam("id") Long id) {
+    public Uni<UserDTO> get(@PathParam("id") Long id) {
         return service.get(id);
     }
 
     @GET
     @Path("/search")
-    public List<UserDTO> search(
+    public Uni<List<UserDTO>> search(
             @QueryParam("name") String name,
             @DefaultValue("0") @QueryParam("page") int page,
             @DefaultValue("20") @QueryParam("size") int size) {
@@ -50,15 +52,18 @@ public class UserResource {
     }
 
     @POST
-    public Response create(@Valid UserCreateDTO in, @Context UriInfo uriInfo) {
-        UserDTO created = service.create(in);
-        URI location = uriInfo.getAbsolutePathBuilder().path(String.valueOf(created.id)).build();
-        return Response.created(location).entity(created).build();
+    public Uni<Response> create(@Valid UserCreateDTO in, @Context UriInfo uriInfo) {
+        return service.create(in) // Uni<UserDTO>
+                .map(dto -> {
+                    // usa dto.id() se è un record, dto.getId() se è un classico DTO
+                    UriBuilder b = uriInfo.getAbsolutePathBuilder().path(String.valueOf(dto.id));
+                    return Response.created(b.build()).entity(dto).build();
+                });
     }
 
     @PUT
     @Path("/{id}")
-    public UserDTO update(@PathParam("id") Long id, @Valid UserUpdateDTO in) {
+    public Uni<UserDTO> update(@PathParam("id") Long id, @Valid UserUpdateDTO in) {
         return service.update(id, in);
     }
 
