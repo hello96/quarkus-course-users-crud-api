@@ -2,10 +2,14 @@ package com.example.service;
 
 import java.util.List;
 
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+
 import com.example.dto.UserCreateDTO;
 import com.example.dto.UserDTO;
 import com.example.dto.UserUpdateDTO;
 import com.example.entity.User;
+import com.example.events.UserCreatedEvent;
 import com.example.mapper.UserMapper;
 import com.example.repository.UserRepository;
 
@@ -23,6 +27,9 @@ public class UserService {
     @Inject
     UserRepository repo;
 
+    @Channel("users-out")
+    Emitter<UserCreatedEvent> emitter;
+
     public List<UserDTO> list() {
         return UserMapper.toDTOs(repo.listAll());
     }
@@ -39,8 +46,21 @@ public class UserService {
             throw new WebApplicationException("Email already in use", Response.Status.CONFLICT);
         });
 
+        // 1) Persisti
         User entity = UserMapper.fromCreate(in);
         repo.persist(entity);
+
+        // 2) Costruisci l'evento
+        var event = new UserCreatedEvent(
+                "UserCreated",
+                java.util.UUID.randomUUID().toString(),
+                java.time.Instant.now(),
+                new UserCreatedEvent.Payload(entity.id, entity.name, entity.email));
+
+        // 3) Pubblica l'evento su Kafka (JSON auto)
+        emitter.send(event);
+
+        // 4) Ritorna il DTO
         return UserMapper.toDTO(entity);
     }
 
