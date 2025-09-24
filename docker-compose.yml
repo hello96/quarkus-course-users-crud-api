@@ -1,0 +1,15 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: quarkus-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # conf nginx
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # certificati
+      - ./certs:/etc/nginx/certs:ro
+    # Necessario su Linux per risolvere host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
