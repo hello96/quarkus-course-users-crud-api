@@ -8,6 +8,8 @@ import com.example.dto.UserDTO;
 import com.example.dto.UserUpdateDTO;
 import com.example.service.UserService;
 
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -36,6 +38,7 @@ public class UserResource {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({ "user", "admin" })
     public UserDTO get(@PathParam("id") Long id) {
         return service.get(id);
     }
@@ -50,6 +53,7 @@ public class UserResource {
     }
 
     @POST
+    @RolesAllowed({ "user", "admin" })
     public Response create(@Valid UserCreateDTO in, @Context UriInfo uriInfo) {
         UserDTO created = service.create(in);
         URI location = uriInfo.getAbsolutePathBuilder().path(String.valueOf(created.id)).build();
@@ -58,8 +62,16 @@ public class UserResource {
 
     @PUT
     @Path("/{id}")
-    public UserDTO update(@PathParam("id") Long id, @Valid UserUpdateDTO in) {
-        return service.update(id, in);
+    @RolesAllowed({ "user", "admin" })
+
+    public Response update(@PathParam("id") Long id, @Valid UserUpdateDTO in, @Context SecurityIdentity identity) {
+        if (!identity.hasRole("admin") &&
+                !identity.getPrincipal().getName().equals(id.toString())) {
+            return Response.status(403).build();
+        }
+
+        UserDTO updated = service.update(id, in);
+        return Response.ok(updated).build();
     }
 
     @DELETE
