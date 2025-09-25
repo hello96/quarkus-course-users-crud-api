@@ -1,0 +1,2 @@
+MAVEN_OPTS=-Xms128m -Xmx512m -XX:MaxRAMPercentage=60.0
+MAVEN_ARGS_APPEND=-DskipTests -Dquarkus.analytics.disabled=true
