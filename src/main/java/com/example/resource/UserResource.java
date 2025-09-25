@@ -8,6 +8,7 @@ import com.example.dto.UserDTO;
 import com.example.dto.UserUpdateDTO;
 import com.example.service.UserService;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -50,6 +51,7 @@ public class UserResource {
     }
 
     @POST
+    @RolesAllowed("admin")
     public Response create(@Valid UserCreateDTO in, @Context UriInfo uriInfo) {
         UserDTO created = service.create(in);
         URI location = uriInfo.getAbsolutePathBuilder().path(String.valueOf(created.id)).build();
