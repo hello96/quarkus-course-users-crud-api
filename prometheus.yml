@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'quarkus-app'
+    metrics_path: /q/metrics
+    static_configs:
+      - targets: ['host.docker.internal:8080']  # o 'localhost:8080' se non sei in container
